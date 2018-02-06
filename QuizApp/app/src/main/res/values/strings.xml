@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Quiz App</string>
+    <string name="hello_developers">Hello Developers!</string>
+    <string name="main_info">My name is Gábor. This is my first public android project. I hope you can answer these questions. Good luck!</string>
+</resources>
