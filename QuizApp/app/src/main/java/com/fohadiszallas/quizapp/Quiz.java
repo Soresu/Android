@@ -1,6 +1,7 @@
 package com.fohadiszallas.quizapp;
 
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -32,7 +34,6 @@ import java.util.List;
 public class Quiz extends AppCompatActivity {
 
     Integer QuizId = 0;
-    String[] Quiz1Answers = {"KitKat", "Lollipop", "Marshmallow", "Nougat", "Oreo"};
     List<Question> Questions = new ArrayList<>();
     String[] AnswerTags = {"textAnswer", "radioAnswers", "checkboxAnswers", "results"};
     List<String> UserAnswers = new ArrayList<>();
@@ -50,6 +51,7 @@ public class Quiz extends AppCompatActivity {
         List<String> answers = new ArrayList<>();
         String currentVersion = GetCurrentVersion();
         answers.add(currentVersion);
+        String[] Quiz1Answers = {"KitKat", "Lollipop", "Marshmallow", "Nougat", "Oreo"};
         for (Integer i = 0; i < 3; i++) {
             if (currentVersion != Quiz1Answers[i]) {
                 answers.add(Quiz1Answers[i]);
@@ -86,7 +88,7 @@ public class Quiz extends AppCompatActivity {
             LoadNextQuestion();
             return;
         }
-        //Adding answer from user
+        //Adding answer from user to UserAnswers List
         String answer = "";
         Question previousQuestion = Questions.get(QuizId);
         switch (previousQuestion.Type) {
@@ -118,6 +120,8 @@ public class Quiz extends AppCompatActivity {
                 TextView answerTextView = (TextView) findViewById(R.id.text0);
                 answer = answerTextView.getText().toString();
                 SetSingleAnswer(null);
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 break;
             default:
 
@@ -128,10 +132,11 @@ public class Quiz extends AppCompatActivity {
         }
         UserAnswers.add(answer);
 
-        //There are more questions
+        //There are more questions, we shoul show it
         if (QuizId < Questions.size() - 1) {
             QuizId++;
             LoadNextQuestion();
+            // No more question, show the results
         } else {
             HideViews("results");
             SetQuestionTitle("Results", "");
@@ -177,6 +182,14 @@ public class Quiz extends AppCompatActivity {
         }
     }
 
+    /**
+     * Add textView to a layout element
+     * @param resView view where we add the new textview
+     * @param text text of the textview
+     * @param size font size
+     * @param tf fontface
+     * @param color text color
+     */
     public void AddTextToResults(LinearLayout resView, String text, Integer size, Integer tf, String color) {
 
         TextView line = new TextView(this);
@@ -190,6 +203,9 @@ public class Quiz extends AppCompatActivity {
         resView.addView(line);
     }
 
+    /**
+     * Load the next question
+     */
     private void LoadNextQuestion() {
         Question currentQuestion = Questions.get(QuizId);
         SetQuestionTitle("Question " + (QuizId + 1), currentQuestion.Title);
@@ -213,6 +229,10 @@ public class Quiz extends AppCompatActivity {
         }
     }
 
+    /**
+     * Hide other answer types
+     * @param name the answer type we want to display
+     */
     public void HideViews(String name) {
         //Hide unused views
         for (Integer i = 0; i < AnswerTags.length; i++) {
@@ -227,6 +247,11 @@ public class Quiz extends AppCompatActivity {
         }
     }
 
+    /**
+     * Set the possible answers if it has multiple answer
+     * @param current question object
+     * @param type question type as string (it could be enum name too)
+     */
     public void SetMultipleAnsers(Question current, String type) {
         for (Integer i = 0; i < current.Answers.length; i++) {
             //Get the question
@@ -238,11 +263,20 @@ public class Quiz extends AppCompatActivity {
         }
     }
 
+    /**
+     * Set single answer fields (currently text), basically for reset the value
+     * @param answer answer
+     */
     private void SetSingleAnswer(String answer) {
         TextView answerTextView = (TextView) findViewById(R.id.text0);
         answerTextView.setText(answer);
     }
 
+    /**
+     * Set the title
+     * @param mainTitle question number
+     * @param title question
+     */
     private void SetQuestionTitle(String mainTitle, String title) {
         TextView questionTextView = (TextView) findViewById(R.id.question);
         questionTextView.setText(title);
@@ -250,6 +284,11 @@ public class Quiz extends AppCompatActivity {
         mainTitleTextView.setText(mainTitle);
     }
 
+
+    /**
+     * Get the android version for question 1
+     * @return android version
+     */
     public static String GetCurrentVersion() {
         double release = Double.parseDouble(Build.VERSION.RELEASE.replaceAll("(\\d+[.]\\d+)(.*)", "$1"));
         String codeName = "Other";//below Jelly bean OR above Oreo
